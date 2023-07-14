@@ -6,7 +6,7 @@ services:
     container_name: stats-server-container
     ports:
       - "9090:9090"
-    depends-on:
+    depends_on:
       - stats-db
     environment:
       - DRIVER_CLASS_NAME=org.postgresql.Driver
@@ -30,7 +30,7 @@ services:
     container_name: ewm-service-container
     ports:
       - "8080:8080"
-    depends-on:
+    depends_on:
       - ewm-db
       - stats-server
     environment:
