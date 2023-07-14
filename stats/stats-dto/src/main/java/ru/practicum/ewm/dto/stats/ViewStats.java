@@ -1,11 +1,12 @@
 package ru.practicum.ewm.dto.stats;
 
 import lombok.Builder;
-
-import javax.persistence.Entity;
+import lombok.Getter;
+import lombok.ToString;
 
 @Builder
-@Entity
+@Getter
+@ToString
 public class ViewStats {
     String app;
     String uri;

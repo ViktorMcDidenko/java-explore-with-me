@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Builder
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity
 public class EndpointHit {
    private Long id;
    private String app;
