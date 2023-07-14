@@ -2,17 +2,12 @@ package ru.practicum.ewm.stats.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.dto.stats.EndpointHit;
 import ru.practicum.ewm.dto.stats.ViewStats;
 import org.springframework.jdbc.core.JdbcTemplate;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.List;
 

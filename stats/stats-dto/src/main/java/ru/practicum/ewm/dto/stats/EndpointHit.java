@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.jackson.Jacksonized;
 
-import javax.persistence.Entity;
 import java.time.LocalDateTime;
 
 @Getter

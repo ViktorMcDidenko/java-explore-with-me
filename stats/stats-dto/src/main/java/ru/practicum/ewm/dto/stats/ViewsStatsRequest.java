@@ -2,12 +2,10 @@ package ru.practicum.ewm.dto.stats;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Singular;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @ToString
