@@ -8,5 +8,6 @@ import java.util.List;
 
 public interface StatsService {
     void saveHit(EndpointHit hit);
+
     List<ViewStats> calculateViews(ViewsStatsRequest request);
 }
