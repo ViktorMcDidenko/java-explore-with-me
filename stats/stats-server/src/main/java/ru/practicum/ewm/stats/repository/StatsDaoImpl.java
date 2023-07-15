@@ -28,14 +28,7 @@ public class StatsDaoImpl implements StatsDao {
         sql += request.isUnique() ? "COUNT (DISTINCT ip) AS hits " : "COUNT (ip) AS hits ";
         sql += "FROM stats WHERE (created >= ? AND created <= ?) ";
         if (!request.getUris().isEmpty()) {
-            sql += "AND uri IN ('";
-            for (int i = 0; i < request.getUris().size(); i++) {
-                if (i > 0) {
-                    sql += ", '";
-                }
-                sql += request.getUris().get(i) + "'";
-            }
-            sql += ") ";
+            sql += addUris(request.getUris());
         }
         sql += "GROUP BY app, uri ORDER BY hits DESC";
         return jdbc.query(sql, rowMapper(), request.getStart(), request.getEnd());
@@ -50,5 +43,16 @@ public class StatsDaoImpl implements StatsDao {
                     .build();
             return result;
         };
+    }
+
+    private String addUris(List<String> uris) {
+        String result = "AND uri IN ('";
+        for (int i = 0; i < uris.size(); i++) {
+            if (i > 0) {
+                result += ", '";
+            }
+            result += uris.get(i) + "'";
+        }
+        return result + ") ";
     }
 }

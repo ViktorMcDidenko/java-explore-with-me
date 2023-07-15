@@ -1,100 +1,84 @@
 package ru.practicum.ewm.client.stats;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.*;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 import ru.practicum.ewm.dto.stats.EndpointHit;
-import ru.practicum.ewm.dto.stats.ViewStats;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.URI;
 import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class StatsClient {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private final String application;
-    private final String statsServiceUri;
-    private final ObjectMapper json;
-    private final HttpClient httpClient;
+    private final RestTemplate rest;
+    private static final String APPLICATION = "ewm-main-service";
+    private static final String STATS_SERVICE_URI = "http://localhost:9090";
 
-    public StatsClient(@Value("ewm-main-service") String application,
-                       @Value("http://localhost:9090") String statsServiceUri,
-                       ObjectMapper json) {
-        this.application = application;
-        this.statsServiceUri = statsServiceUri;
-        this.json = json;
-        this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
-    }
-
-    public void hit(HttpServletRequest userRequest) throws Exception {
+    public ResponseEntity<Object> post(HttpServletRequest request) {
         EndpointHit hit = EndpointHit.builder()
-                .app(application)
-                .ip(userRequest.getRemoteAddr())
-                .uri(userRequest.getRequestURI())
+                .app(APPLICATION)
+                .ip(request.getRemoteAddr())
+                .uri(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
-        try {
-            HttpRequest.BodyPublisher bodyPublisher = HttpRequest
-                    .BodyPublishers
-                    .ofString(json.writeValueAsString(hit));
-            HttpRequest hitRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(statsServiceUri + "/hit"))
-                    .POST(bodyPublisher)
-                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                    .header(HttpHeaders.ACCEPT, "application/json")
-                    .build();
-            HttpResponse<Void> response = httpClient.send(hitRequest, HttpResponse.BodyHandlers.discarding());
-        } catch (Exception e) {
-            throw new Exception(e);
-        }
+        String path = STATS_SERVICE_URI + "/hit";
+        return makeAndSendRequest(HttpMethod.POST, path, null, hit);
     }
 
-    public List<ViewStats> getStats(ViewsStatsRequest request) throws Exception {
-        try {
-            String queryString = toQueryString(
-                    request.toBuilder().application(application).build()
-            );
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(URI.create(statsServiceUri + "/stats" + queryString))
-                    .header(HttpHeaders.ACCEPT, "application/json")
-                    .build();
-            HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            if (HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
-                return json.readValue(response.body(), new TypeReference<>() {
-                });
-            }
-        } catch (Exception e) {
-            throw new Exception();
-        }
-        return Collections.emptyList();
-    }
-
-    private String toQueryString(ViewsStatsRequest request) {
-        String start = encode(formatter.format(request.getStart()));
-        String end = encode(formatter.format(request.getEnd()));
-        String queryString = String.format("?start=%s&end=%s", start, end);
+    public ResponseEntity<Object> get(ViewsStatsRequest request) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String start = URLEncoder.encode(formatter.format(request.getStart()));
+        String end = URLEncoder.encode(formatter.format(request.getEnd()));
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("start", start);
+        parameters.put("end", end);
         if (request.getUris() != null && !request.getUris().isEmpty()) {
-            queryString += "&uris=" + String.join(",", request.getUris());
+            parameters.put("uris", request.getUris());
         }
-        queryString += String.format("unique=%b", request.isUnique());
-        return queryString;
+        parameters.put("unique", request.isUnique());
+        String path = STATS_SERVICE_URI + "/stats";
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
     }
 
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    private ResponseEntity<Object> makeAndSendRequest(HttpMethod method,
+                                                      String path,
+                                                      @Nullable Map<String, Object> parameters,
+                                                      @Nullable EndpointHit body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        HttpEntity<EndpointHit> requestEntity = new HttpEntity<>(body, headers);
+        ResponseEntity<Object> statsServerResponse;
+        try {
+            if (parameters != null) {
+                statsServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
+            } else {
+                statsServerResponse = rest.exchange(path, method, requestEntity, Object.class);
+            }
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+        }
+        return prepareResponse(statsServerResponse);
+    }
+
+    private static ResponseEntity<Object> prepareResponse(ResponseEntity<Object> response) {
+        if (response.getStatusCode().is2xxSuccessful()) {
+            return response;
+        }
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
+        if (response.hasBody()) {
+            return responseBuilder.body(response.getBody());
+        }
+        return responseBuilder.build();
     }
 }

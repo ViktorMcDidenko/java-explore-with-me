@@ -1,19 +1,17 @@
 package ru.practicum.ewm.dto.stats;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.extern.jackson.Jacksonized;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@Jacksonized
-@JsonIgnoreProperties(ignoreUnknown = true)
+//@Jacksonized
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class EndpointHit {
-   private Long id;
+   //private Long id;
    private String app;
    private String uri;
    private String ip;
