@@ -11,7 +11,6 @@ import java.util.List;
 @ToString
 @Builder(toBuilder = true)
 public class ViewsStatsRequest {
-    //@Singular("uri")
     private List<String> uris;
     @Builder.Default
     private LocalDateTime start = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);

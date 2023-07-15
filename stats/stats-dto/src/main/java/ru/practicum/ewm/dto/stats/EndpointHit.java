@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EndpointHit {
-   //private Long id;
    private String app;
    private String uri;
    private String ip;
