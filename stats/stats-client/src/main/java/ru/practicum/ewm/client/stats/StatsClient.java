@@ -1,14 +1,16 @@
 package ru.practicum.ewm.client.stats;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.ewm.dto.stats.EndpointHit;
 import ru.practicum.ewm.dto.stats.ViewStats;
 import ru.practicum.ewm.dto.stats.ViewStatsList;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
@@ -17,12 +19,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-@RequiredArgsConstructor
+@Component
 public class StatsClient {
     private final RestTemplate rest;
     private static final String APPLICATION = "ewm-main-service";
     private static final String STATS_SERVICE_URI = "http://localhost:9090";
+
+    public StatsClient(RestTemplateBuilder builder) {
+        this.rest = builder
+                .uriTemplateHandler(new DefaultUriBuilderFactory(STATS_SERVICE_URI))
+                //.requestFactory(HttpComponentsClientHttpRequestFactory::new)
+                .build();
+    }
 
     public void post(HttpServletRequest request) throws Exception {
         EndpointHit hit = EndpointHit.builder()
@@ -35,7 +43,7 @@ public class StatsClient {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<EndpointHit> requestEntity = new HttpEntity<>(hit, headers);
         try {
-            rest.postForObject(STATS_SERVICE_URI + "/hit", requestEntity, EndpointHit.class);
+            rest.postForObject("/hit", requestEntity, EndpointHit.class);
         } catch (HttpStatusCodeException e) {
             throw new Exception(e.getStatusCode() + e.getResponseBodyAsString());
         }
@@ -46,7 +54,7 @@ public class StatsClient {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String start = URLEncoder.encode(formatter.format(request.getStart()));
         String end = URLEncoder.encode(formatter.format(request.getEnd()));
-        String path = STATS_SERVICE_URI + "/stats" + String.format("?start=%s&end=%s", start, end);
+        String path = "/stats" + String.format("?start=%s&end=%s", start, end);
         if (request.getUris() != null && !request.getUris().isEmpty()) {
             path += "&uris=" + String.join(",", request.getUris());
         }

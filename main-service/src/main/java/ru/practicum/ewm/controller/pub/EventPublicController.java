@@ -60,7 +60,7 @@ public class EventPublicController {
             log.warn(e.getMessage());
         }
         LocalDateTime start = LocalDateTime.now();
-        LocalDateTime end = LocalDateTime.MAX;
+        LocalDateTime end = LocalDateTime.of(9999, 12, 31, 23, 59, 59);
         if (rangeStart != null) {
             try {
                 start = LocalDateTime.parse(rangeStart, FORMATTER);

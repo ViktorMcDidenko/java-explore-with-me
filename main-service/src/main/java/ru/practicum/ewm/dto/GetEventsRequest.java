@@ -1,14 +1,17 @@
 package ru.practicum.ewm.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Value;
+import lombok.*;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.ewm.model.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Value
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class GetEventsRequest {
     String text;
     List<Long> categories;

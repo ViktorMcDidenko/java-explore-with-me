@@ -14,7 +14,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/user/{userId}/events")
+@RequestMapping(path = "/users/{userId}/events")
 @RequiredArgsConstructor
 @Validated
 public class EventPrivateController {

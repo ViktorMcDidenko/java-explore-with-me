@@ -12,10 +12,7 @@ import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.*;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.RequestRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.*;

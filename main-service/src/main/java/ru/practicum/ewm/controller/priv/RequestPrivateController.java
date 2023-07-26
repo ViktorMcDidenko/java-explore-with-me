@@ -9,7 +9,7 @@ import ru.practicum.ewm.service.RequestService;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/user/{userId}/requests")
+@RequestMapping(path = "/users/{userId}/requests")
 @RequiredArgsConstructor
 @Validated
 public class RequestPrivateController {
