@@ -97,7 +97,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto change(UpdateEventRequest updateEventRequest, long userId, long eventId) {
-        if (updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
+        if (updateEventRequest.getEventDate() != null
+                && updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new ConflictException("For the requested operation the conditions are not met.");
         }
         Event event = eventRepository.findById(eventId)
@@ -122,7 +123,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto getByIdPublic(long id) {
-        Event event = eventRepository.findByIdAndState(id, State.PUBLISHED.toString())
+        Event event = eventRepository.findByIdAndState(id, State.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found.", id)));
         ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + id));
         try {
@@ -250,7 +251,6 @@ public class EventServiceImpl implements EventService {
     private ViewsStatsRequest formViewsStatsRequest(List<String> uris) {
         return ViewsStatsRequest.builder()
                 .uris(uris)
-                .start(LocalDateTime.MIN)
                 .application("ewm-main-service")
                 .build();
     }

@@ -75,6 +75,9 @@ public class EventPublicController {
                 throw new BadRequestException("Incorrectly made request.");
             }
         }
+        if (start.isAfter(end)) {
+            throw new BadRequestException("End date for the search can not be before start date.");
+        }
         if (categories == null) {
             categories = new ArrayList<>();
         }
