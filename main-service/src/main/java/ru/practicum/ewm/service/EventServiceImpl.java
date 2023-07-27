@@ -169,7 +169,7 @@ public class EventServiceImpl implements EventService {
             }
             events = new ArrayList<>(eventMap.values());
         }
-        if (eventsRequest.getSort().equals(Sort.VIEWS)) {
+        if (eventsRequest.getSort() != null && eventsRequest.getSort().equals(Sort.VIEWS)) {
             events.sort(Comparator.comparingLong(Event::getViews));
         }
         return eventMapper.eventToEventShortDtoList(events);
@@ -177,7 +177,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto changeAdmin(UpdateEventRequest updateEventRequest, long eventId) {
-        if (updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+        if (updateEventRequest.getEventDate() != null && updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new ConflictException("For the requested operation the conditions are not met.");
         }
         Event event = eventRepository.findById(eventId)
@@ -196,8 +196,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventDto> getAdmin(GetEventsRequestAdmin request) {
+        System.out.println("ПРИВЕТ" + request.getRangeStart() + "     " + request.getRangeEnd());
         List<Event> events = eventRepository.findAdmin(request.getUsers(), request.getStates(), request.getCategories(),
-                request.getRangeStart(), request.getRangeStart(), request.getPageable());
+                /*request.getRangeStart(), request.getRangeStart(),*/ request.getPageable());
         return events.isEmpty() ? new ArrayList<>() : eventMapper.eventsToEventDtoList(events);
     }
 
