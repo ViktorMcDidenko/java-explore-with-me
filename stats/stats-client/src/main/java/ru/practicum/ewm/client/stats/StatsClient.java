@@ -69,7 +69,7 @@ public class StatsClient {
         } catch (HttpStatusCodeException e) {
             System.out.println(e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
-            throw new Exception(e.getStatusCode() + e.getResponseBodyAsString());
+            throw new Exception(e.getStatusCode() + e.getResponseBodyAsString());//
         }
     }
 }
