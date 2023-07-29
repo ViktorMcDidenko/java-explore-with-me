@@ -34,7 +34,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto add(long userId, NewEventDto newEventDto) {
         if (newEventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("For the requested operation the conditions are not met.");
+            throw new BadRequestException("For the requested operation the conditions are not met.");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found.", userId)));
@@ -99,7 +99,7 @@ public class EventServiceImpl implements EventService {
     public EventDto change(UpdateEventRequest updateEventRequest, long userId, long eventId) {
         if (updateEventRequest.getEventDate() != null
                 && updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("For the requested operation the conditions are not met.");
+            throw new BadRequestException("For the requested operation the conditions are not met.");
         }
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found.", eventId)));
@@ -131,7 +131,9 @@ public class EventServiceImpl implements EventService {
             long views = stats.get(0).getHits();
             event.setViews(views);
             event = eventRepository.save(event);
+            System.out.println("ПРИВЕт     " + event.getViews());
         } catch (Exception e) {
+            System.out.println("ПРИВЕТ     " + Arrays.toString(e.getStackTrace()));
             log.warn(e.getMessage());
         }
         return eventMapper.eventToEventDto(event);
@@ -139,8 +141,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublic(GetEventsRequest eventsRequest) {
-        List<Event> events = eventRepository.findPublic(eventsRequest.getText(),eventsRequest.getCategories(), eventsRequest.isPaid(),
-                eventsRequest.getRangeStart(), eventsRequest.getRangeEnd(), eventsRequest.getPageable());
+        List<Event> events = eventRepository.findPublic(eventsRequest.getText(),eventsRequest.getCategories(),
+                eventsRequest.getPaid(), eventsRequest.getRangeStart(), eventsRequest.getRangeEnd(),
+                eventsRequest.getPageable());
         if (events.isEmpty()) {
             return new ArrayList<>();
         }
@@ -154,6 +157,7 @@ public class EventServiceImpl implements EventService {
         List<ViewStats> stats = new ArrayList<>();
         try {
             stats = client.get(request);
+            System.out.println(stats);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
@@ -164,7 +168,7 @@ public class EventServiceImpl implements EventService {
                 long id = Long.parseLong(statsArray[2]);
                 Event event = eventMap.get(id);
                 event.setViews(v.getHits());
-                event = eventRepository.save(event); //если не работает, попробовать update через native query
+                event = eventRepository.save(event);
                 eventMap.put(id, event);
             }
             events = new ArrayList<>(eventMap.values());
@@ -177,8 +181,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto changeAdmin(UpdateEventRequest updateEventRequest, long eventId) {
-        if (updateEventRequest.getEventDate() != null && updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("For the requested operation the conditions are not met.");
+        if (updateEventRequest.getEventDate() != null
+                && updateEventRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
+            throw new BadRequestException("For the requested operation the conditions are not met.");
         }
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found.", eventId)));
@@ -196,9 +201,10 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventDto> getAdmin(GetEventsRequestAdmin request) {
-        System.out.println("ПРИВЕТ" + request.getRangeStart() + "     " + request.getRangeEnd());
+        System.out.println("ПРИВЕТ     " + request.getUsers() + request.getStates() + request.getCategories() +
+                request.getRangeStart() + request.getRangeEnd() + request.getPageable());
         List<Event> events = eventRepository.findAdmin(request.getUsers(), request.getStates(), request.getCategories(),
-                /*request.getRangeStart(), request.getRangeStart(),*/ request.getPageable());
+                request.getRangeStart(), request.getRangeEnd(), request.getPageable());
         return events.isEmpty() ? new ArrayList<>() : eventMapper.eventsToEventDtoList(events);
     }
 
@@ -218,30 +224,33 @@ public class EventServiceImpl implements EventService {
     public UpdatedRequests updateRequestStatus(long userId, long eventId, UpdateRequestStatus update) {
         Status status = Status.from(update.getStatus())
                 .orElseThrow(() -> new BadRequestException("Unknown state: " + update.getStatus()));
+
         List<Request> requests = requestRepository.findAllById(update.getRequestIds());
         if (requests.isEmpty()) {
             throw new NotFoundException("Requests you are trying to update are not found.");
         }
-        requests.stream().filter(r -> !r.getState().equals(State.PENDING)).forEach(r -> {
+        requests.stream().filter(r -> !r.getStatus().equals(Status.PENDING)).forEach(r -> {
             throw new ConflictException("Request must have status PENDING");
         });
         requests.stream().filter(r -> r.getEvent().getId() != eventId).forEach(r -> {
             throw new ConflictException("Requests you are trying to update are not for the event with id=" + eventId);
         });
         Event event = requests.get(0).getEvent();
+        if (event.getConfirmedRequests() + update.getRequestIds().size() > event.getParticipantLimit()) {
+            throw new ConflictException("This event has already reached its participant limit.");
+        }
         if (event.getInitiator().getId() != userId) {
             throw new ConflictException("You are not allowed to inspect requests for this event.");
         }
-        if (status.equals(Status.REJECTED) || (event.getParticipantLimit() != 0
-                && event.getParticipantLimit() + update.getRequestIds().size() <= event.getConfirmedRequests())) {
+        if (status.equals(Status.REJECTED)) {
             for (Request r : requests) {
-                r.setState(State.CANCELLED);
+                r.setStatus(Status.REJECTED);
                 requestRepository.save(r);
             }
             return new UpdatedRequests(null, requestMapper.requestToRequestDtoList(requests));
         }
         for (Request r : requests) {
-            r.setState(State.PUBLISHED);
+            r.setStatus(Status.CONFIRMED);
             requestRepository.save(r);
         }
         event.setConfirmedRequests(event.getConfirmedRequests() + requests.size());
@@ -252,6 +261,7 @@ public class EventServiceImpl implements EventService {
     private ViewsStatsRequest formViewsStatsRequest(List<String> uris) {
         return ViewsStatsRequest.builder()
                 .uris(uris)
+                .unique(true)
                 .application("ewm-main-service")
                 .build();
     }

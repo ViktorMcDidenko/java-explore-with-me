@@ -24,6 +24,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto add(CategoryDto categoryDto) {
+        if (categoryRepository.existsByNameAndIdIsNot(categoryDto.getName(), 0)) {
+            throw new ConflictException(String.format("Name %s is already in use.", categoryDto.getName()));
+        }
         Category category = mapper.categoryDtoToCategory(categoryDto);
         Category savedCategory = categoryRepository.save(category);
         return mapper.categoryToCategoryDto(savedCategory);
@@ -33,8 +36,11 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto change(long id, CategoryDto categoryDto) {
         Category savedCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.", id)));
+        if (categoryRepository.existsByNameAndIdIsNot(categoryDto.getName(), id)) {
+            throw new ConflictException(String.format("Name %s is already in use.", categoryDto.getName()));
+        }
         savedCategory.setName(categoryDto.getName());
-        Category updatedCategory = categoryRepository.save(savedCategory); //если не сработает, сначала удалить, потом сохранить заново, без приблуд выше
+        Category updatedCategory = categoryRepository.save(savedCategory);
         return mapper.categoryToCategoryDto(updatedCategory);
     }
 
@@ -50,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryDto> get(Pageable pageable) {
         Page<Category> page = categoryRepository.findAll(pageable);
         List<CategoryDto> result = new ArrayList<>();
-        for (Category c : page) { //не факт, что это работает
+        for (Category c : page) {
             result.add(mapper.categoryToCategoryDto(c));
         }
         return result;

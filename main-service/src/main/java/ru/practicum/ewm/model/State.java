@@ -3,7 +3,7 @@ package ru.practicum.ewm.model;
 import java.util.Optional;
 
 public enum State {
-    PENDING, PUBLISHED, CANCELLED;
+    PENDING, PUBLISHED, CANCELED;
 
     public static Optional<State> from(String stringState) {
         for (State state : values()) {

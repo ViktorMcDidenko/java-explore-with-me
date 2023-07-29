@@ -28,29 +28,27 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "OR LOWER(e.annotation) LIKE LOWER(CONCAT('%', :text, '%')) " +
             "OR LOWER(e.description) LIKE lower(CONCAT('%', :text, '%'))) " +
             "AND e.category_id IN (:categories) " +
-            "AND e.paid = :paid " +
+            "AND (:paid IS NULL OR e.paid = :paid) " +
             "AND (e.event_date >= :rangeStart AND e.event_date <= :rangeEnd) " +
             "ORDER BY e.event_date", nativeQuery = true)
     List<Event> findPublic(@Param("text") String text,
                            @Param("categories") List<Long> categories,
-                           @Param("paid") boolean paid,
+                           @Param("paid") Boolean paid,
                            @Param("rangeStart") LocalDateTime rangeStart,
                            @Param("rangeEnd") LocalDateTime rangeEnd,
                            Pageable pageable);
 
-    @Query(value = "SELECT * " +
-            "FROM events e " +
-            "WHERE " +
-            "initiator_id IN (:users) " +
-            "AND " +
-            "(:states IS NULL OR e.state IN (:states)) " +
-            "AND (:categories IS NULL OR e.category_id IN (:categories)) "/* +
-            "AND (:rangeStart IS NULL OR e.event_date > :rangeStart)" +
-            "AND (:rangeEnd IS NULL OR e.event_date < :rangeEnd)"*/, nativeQuery = true)
+    @Query(value = "SELECT * FROM events e " +
+            "WHERE (:users IS NULL OR e.initiator_id IN (CAST(CAST(:users AS TEXT) AS BIGINT))) " +
+            "AND (:states IS NULL OR e.state IN (CAST(:states AS TEXT))) " +
+            "AND (:categories IS NULL OR e.category_id IN (CAST(CAST(:categories AS TEXT) AS BIGINT))) " +
+            "AND (CAST(:rangeStart AS TIMESTAMP) IS NULL OR e.event_date >= CAST(:rangeStart AS TIMESTAMP)) " +
+            "AND (CAST(:rangeEnd AS TIMESTAMP)  IS NULL OR e.event_date < CAST(:rangeEnd AS TIMESTAMP)) ",
+            nativeQuery = true)
     List<Event> findAdmin(@Param("users") List<Long> users,
                           @Param("states") List<String> states,
                           @Param("categories") List<Long> categories,
-                          /*@Param("rangeStart") LocalDateTime rangeStart,
-                          @Param("rangeEnd") LocalDateTime rangeEnd,*/
+                          @Param("rangeStart") LocalDateTime rangeStart,
+                          @Param("rangeEnd") LocalDateTime rangeEnd,
                           Pageable pageable);
 }

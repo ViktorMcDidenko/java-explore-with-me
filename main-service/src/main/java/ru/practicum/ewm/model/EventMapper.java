@@ -71,7 +71,7 @@ public class EventMapper {
         State state = oldEvent.getState();
         if (request.getStateAction() != null) {
             if (StateAction.CANCEL_REVIEW.name().equalsIgnoreCase(request.getStateAction())) {
-                state = State.CANCELLED;
+                state = State.CANCELED;
             } else if (StateAction.SEND_TO_REVIEW.name().equalsIgnoreCase(request.getStateAction())) {
                 state = State.PENDING;
             }
@@ -84,7 +84,7 @@ public class EventMapper {
         State state = oldEvent.getState();
         if (request.getStateAction() != null) {
             if (StateAction.REJECT_EVENT.name().equalsIgnoreCase(request.getStateAction())) {
-                state = State.CANCELLED;
+                state = State.CANCELED;
             } else if (StateAction.PUBLISH_EVENT.name().equalsIgnoreCase(request.getStateAction())) {
                 state = State.PUBLISHED;
                 publishedOn = LocalDateTime.now();

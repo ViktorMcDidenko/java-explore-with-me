@@ -13,7 +13,7 @@ public class RequestMapper {
                 request.getCreated(),
                 request.getEvent().getId(),
                 request.getRequestor().getId(),
-                request.getState());
+                request.getStatus());
     }
 
     public List<RequestDto> requestToRequestDtoList(List<Request> requests) {

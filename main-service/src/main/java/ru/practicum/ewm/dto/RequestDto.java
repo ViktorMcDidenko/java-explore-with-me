@@ -2,7 +2,7 @@ package ru.practicum.ewm.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Value;
-import ru.practicum.ewm.model.State;
+import ru.practicum.ewm.model.Status;
 
 import java.time.LocalDateTime;
 
@@ -13,5 +13,5 @@ public class RequestDto {
     LocalDateTime created;
     long event;
     long requester;
-    State state;
+    Status status;
 }

@@ -26,11 +26,11 @@ public class Request {
     @ManyToOne(fetch = FetchType.LAZY)
     private User requestor;
     @Enumerated(EnumType.STRING)
-    private State state;
+    private Status status;
 
-    public Request(Event event, User requestor, State state) {
+    public Request(Event event, User requestor, Status status) {
         this.event = event;
         this.requestor = requestor;
-        this.state = state;
+        this.status = status;
     }
 }

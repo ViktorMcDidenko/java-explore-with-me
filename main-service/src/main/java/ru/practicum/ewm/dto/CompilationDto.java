@@ -1,10 +1,13 @@
 package ru.practicum.ewm.dto;
 
-import lombok.Value;
+import lombok.*;
 
 import java.util.List;
 
-@Value
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CompilationDto {
     int id;
     List<EventShortDto> events;

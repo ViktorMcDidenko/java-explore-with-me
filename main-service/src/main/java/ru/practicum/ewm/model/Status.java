@@ -3,7 +3,7 @@ package ru.practicum.ewm.model;
 import java.util.Optional;
 
 public enum Status {
-    CONFIRMED, REJECTED;
+    PENDING, CANCELED, CONFIRMED, REJECTED;
 
     public static Optional<Status> from(String stringStatus) {
         for (Status status : values()) {

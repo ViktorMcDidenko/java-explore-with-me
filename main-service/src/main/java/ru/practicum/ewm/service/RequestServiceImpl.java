@@ -39,24 +39,21 @@ public class RequestServiceImpl implements RequestService {
         }
         User requestor = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("User with id=%d was not found.", userId)));
-        State state;
-        if (event.isRequestModeration()) {
-            state = State.PENDING;
-        } else {
-            state = State.PUBLISHED;
+        Status status;
+        if (event.getParticipantLimit() == 0 || !event.isRequestModeration()) {
+            status = Status.CONFIRMED;
             event.setConfirmedRequests(event.getConfirmedRequests() + 1);
             eventRepository.save(event);
+        } else {
+            status = Status.PENDING;
         }
-        Request request = new Request(event, requestor, state);
+        Request request = new Request(event, requestor, status);
         Request savedRequest = requestRepository.save(request);
         return mapper.requestToRequestDto(savedRequest);
     }
 
     @Override
     public List<RequestDto> get(long userId) {
-//        if(!userRepository.existsById(userId)) {
-//            throw new NotFoundException(String.format("User with id=%d was not found.", userId));
-//        }
         List<Request> requests = requestRepository.findByRequestorId(userId);
         return requests.isEmpty() ? new ArrayList<>() : mapper.requestToRequestDtoList(requests);
     }
@@ -68,7 +65,7 @@ public class RequestServiceImpl implements RequestService {
         if (request.getRequestor().getId() != userId) {
             throw new NotFoundException("You can not cancel this request.");
         }
-        request.setState(State.CANCELLED);
+        request.setStatus(Status.CANCELED);
         Request savedRequest = requestRepository.save(request);
         return mapper.requestToRequestDto(savedRequest);
     }

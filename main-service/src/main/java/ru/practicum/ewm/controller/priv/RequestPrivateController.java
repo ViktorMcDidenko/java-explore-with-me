@@ -1,6 +1,7 @@
 package ru.practicum.ewm.controller.priv;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.RequestDto;
@@ -16,6 +17,7 @@ public class RequestPrivateController {
     private final RequestService service;
 
     @PostMapping
+    @ResponseStatus(code = HttpStatus.CREATED)
     public RequestDto create(@PathVariable long userId, @RequestParam long eventId) {
         return service.add(userId, eventId);
     }

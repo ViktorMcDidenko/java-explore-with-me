@@ -45,7 +45,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto change(int compId, UpdateCompilationRequest request) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException(String.format("Compilation with id=%d was not found.", compId)));
-        if (!request.getEvents().isEmpty()) {
+        if (request.getEvents() != null && !request.getEvents().isEmpty()) {
             Set<Event> events = eventRepository.findByIdIn(request.getEvents());
             compilation.setEvents(events);
         }
@@ -55,7 +55,8 @@ public class CompilationServiceImpl implements CompilationService {
         if (request.getTitle() != null) {
             compilation.setTitle(request.getTitle());
         }
-        return mapper.compilationToCompilationDto(compilation);
+        Compilation savedCompilation = compilationRepository.save(compilation);
+        return mapper.compilationToCompilationDto(savedCompilation);
     }
 
     @Override

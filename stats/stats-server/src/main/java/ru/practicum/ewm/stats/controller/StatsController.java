@@ -11,6 +11,7 @@ import ru.practicum.ewm.dto.stats.ViewStats;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
 import ru.practicum.ewm.stats.service.impl.StatsService;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -34,7 +35,8 @@ public class StatsController {
     public ResponseEntity<List<ViewStats>> getStats(@RequestParam @NonNull String start,
                                                     @RequestParam @NonNull String end,
                                                     @RequestParam(required = false) List<String> uris,
-                                                    @RequestParam(defaultValue = "false") boolean unique) {
+                                                    @RequestParam(defaultValue = "false") boolean unique)
+            throws UnsupportedEncodingException {
         LocalDateTime startTime;
         LocalDateTime endTime;
         try {
@@ -42,6 +44,9 @@ public class StatsController {
             endTime = LocalDateTime.parse(end, FORMATTER);
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest().build();
+        }
+        if (startTime.isAfter(endTime)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if (uris == null) {
             uris = new ArrayList<>();

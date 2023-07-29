@@ -40,8 +40,8 @@ public class EventAdminController {
                                @RequestParam(required = false) String rangeEnd,
                                @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                @Positive @RequestParam(defaultValue = "10") Integer size) {
-        LocalDateTime start = LocalDateTime.MIN;
-        LocalDateTime end = LocalDateTime.MAX;
+        LocalDateTime start = LocalDateTime.of(2000, 01, 01, 00, 00, 00);
+        LocalDateTime end = LocalDateTime.of(9999, 12, 12, 23, 59, 59);
         if (rangeStart != null) {
             try {
                 start = LocalDateTime.parse(rangeStart, FORMATTER);

@@ -47,7 +47,7 @@ public class EventPublicController {
     public List<EventShortDto> readAll(HttpServletRequest request,
                                        @RequestParam(required = false) String text,
                                        @RequestParam(required = false) List<Long> categories,
-                                       @RequestParam(defaultValue = "false") boolean paid,
+                                       @RequestParam(required = false) Boolean paid,
                                        @RequestParam(required = false) String rangeStart,
                                        @RequestParam(required = false) String rangeEnd,
                                        @RequestParam(defaultValue = "false") boolean onlyAvailable,

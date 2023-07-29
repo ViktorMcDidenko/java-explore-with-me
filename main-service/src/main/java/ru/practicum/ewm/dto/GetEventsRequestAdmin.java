@@ -1,6 +1,5 @@
 package ru.practicum.ewm.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Value;
 import org.springframework.data.domain.Pageable;
 

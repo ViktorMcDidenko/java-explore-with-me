@@ -15,7 +15,7 @@ import java.util.List;
 public class GetEventsRequest {
     String text;
     List<Long> categories;
-    boolean paid;
+    Boolean paid;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime rangeStart;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
