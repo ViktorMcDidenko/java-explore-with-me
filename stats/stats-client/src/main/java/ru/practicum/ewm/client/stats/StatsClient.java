@@ -1,5 +1,6 @@
 package ru.practicum.ewm.client.stats;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -19,11 +20,10 @@ import java.util.*;
 public class StatsClient {
     private final RestTemplate rest;
     private static final String APPLICATION = "ewm-main-service";
-    private static final String STATS_SERVICE_URI = "http://localhost:9090";
 
-    public StatsClient(RestTemplateBuilder builder) {
+    public StatsClient(@Value("${stats-server.url}") String statsServiceUri, RestTemplateBuilder builder) {
         this.rest = builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory(STATS_SERVICE_URI))
+                .uriTemplateHandler(new DefaultUriBuilderFactory(statsServiceUri))
                 .build();
     }
 
@@ -67,9 +67,7 @@ public class StatsClient {
                 return List.of(result);
             }
         } catch (HttpStatusCodeException e) {
-            System.out.println(e.getMessage());
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            throw new Exception(e.getStatusCode() + e.getResponseBodyAsString());//
+            throw new Exception(e.getStatusCode() + e.getResponseBodyAsString());
         }
     }
 }

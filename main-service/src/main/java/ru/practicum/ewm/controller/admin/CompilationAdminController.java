@@ -32,8 +32,6 @@ public class CompilationAdminController {
 
     @PatchMapping("/{compId}")
     public CompilationDto update(@Valid @RequestBody UpdateCompilationRequest request, @PathVariable int compId) {
-        CompilationDto x = service.change(compId, request);
-        System.out.println("ПРИВЕТ   " + x);
-        return x;
+        return service.change(compId, request);
     }
 }

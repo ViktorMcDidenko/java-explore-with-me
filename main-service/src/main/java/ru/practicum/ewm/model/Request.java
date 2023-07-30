@@ -19,7 +19,7 @@ public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @CreationTimestamp //если работает, можно так сделать и в других моделях
+    @CreationTimestamp
     private LocalDateTime created;
     @ManyToOne(fetch = FetchType.LAZY)
     private Event event;

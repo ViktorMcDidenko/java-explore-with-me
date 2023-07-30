@@ -131,9 +131,7 @@ public class EventServiceImpl implements EventService {
             long views = stats.get(0).getHits();
             event.setViews(views);
             event = eventRepository.save(event);
-            System.out.println("ПРИВЕт     " + event.getViews());
         } catch (Exception e) {
-            System.out.println("ПРИВЕТ     " + Arrays.toString(e.getStackTrace()));
             log.warn(e.getMessage());
         }
         return eventMapper.eventToEventDto(event);
@@ -157,7 +155,6 @@ public class EventServiceImpl implements EventService {
         List<ViewStats> stats = new ArrayList<>();
         try {
             stats = client.get(request);
-            System.out.println(stats);
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
@@ -201,8 +198,6 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventDto> getAdmin(GetEventsRequestAdmin request) {
-        System.out.println("ПРИВЕТ     " + request.getUsers() + request.getStates() + request.getCategories() +
-                request.getRangeStart() + request.getRangeEnd() + request.getPageable());
         List<Event> events = eventRepository.findAdmin(request.getUsers(), request.getStates(), request.getCategories(),
                 request.getRangeStart(), request.getRangeEnd(), request.getPageable());
         return events.isEmpty() ? new ArrayList<>() : eventMapper.eventsToEventDtoList(events);
