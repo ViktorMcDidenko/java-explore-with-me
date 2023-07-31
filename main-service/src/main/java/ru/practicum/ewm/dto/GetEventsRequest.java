@@ -13,14 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetEventsRequest {
-    String text;
-    List<Long> categories;
-    Boolean paid;
+    private String text;
+    private List<Long> categories;
+    private Boolean paid;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime rangeStart;
+    private LocalDateTime rangeStart;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    LocalDateTime rangeEnd;
-    boolean onlyAvailable;
-    Sort sort;
-    Pageable pageable;
+    private LocalDateTime rangeEnd;
+    private boolean onlyAvailable;
+    private Sort sort;
+    private Pageable pageable;
 }

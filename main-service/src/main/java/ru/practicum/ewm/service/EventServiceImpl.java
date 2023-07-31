@@ -57,7 +57,7 @@ public class EventServiceImpl implements EventService {
         ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + eventId));
         try {
             List<ViewStats> stats = client.get(request);
-            long views = stats.get(0).getHits();
+            long views = stats.stream().findAny().get().getHits();
             event.setViews(views);
             event = eventRepository.save(event);
         } catch (Exception e) {
@@ -128,7 +128,7 @@ public class EventServiceImpl implements EventService {
         ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + id));
         try {
             List<ViewStats> stats = client.get(request);
-            long views = stats.get(0).getHits();
+            long views = stats.stream().findAny().get().getHits();
             event.setViews(views);
             event = eventRepository.save(event);
         } catch (Exception e) {
@@ -139,8 +139,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublic(GetEventsRequest eventsRequest) {
-        List<Event> events = eventRepository.findPublic(eventsRequest.getText(),eventsRequest.getCategories(),
-                eventsRequest.getPaid(), eventsRequest.getRangeStart(), eventsRequest.getRangeEnd(),
+        List<Event> events = eventRepository.findPublic(
+                eventsRequest.getText(),
+                eventsRequest.getCategories(),
+                eventsRequest.getPaid(),
+                eventsRequest.getRangeStart(),
+                eventsRequest.getRangeEnd(),
                 eventsRequest.getPageable());
         if (events.isEmpty()) {
             return new ArrayList<>();
@@ -209,7 +213,7 @@ public class EventServiceImpl implements EventService {
         if (requests.isEmpty()) {
             return new ArrayList<>();
         }
-        if (requests.get(0).getEvent().getInitiator().getId() != userId) {
+        if (requests.stream().findAny().get().getEvent().getInitiator().getId() != userId) {
             throw new ConflictException("You are not allowed to inspect requests for this event.");
         }
         return requestMapper.requestToRequestDtoList(requests);

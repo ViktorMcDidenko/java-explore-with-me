@@ -1,7 +1,6 @@
 package ru.practicum.ewm.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.dto.CategoryDto;
@@ -12,8 +11,8 @@ import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,12 +53,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> get(Pageable pageable) {
-        Page<Category> page = categoryRepository.findAll(pageable);
-        List<CategoryDto> result = new ArrayList<>();
-        for (Category c : page) {
-            result.add(mapper.categoryToCategoryDto(c));
-        }
-        return result;
+        return categoryRepository.findAll(pageable)
+                .getContent()
+                .stream()
+                .map(mapper::categoryToCategoryDto)
+                .collect(Collectors.toList());
     }
 
     @Override
