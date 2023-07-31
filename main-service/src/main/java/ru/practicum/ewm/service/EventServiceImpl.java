@@ -139,20 +139,26 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublic(GetEventsRequest eventsRequest) {
-        List<Event> events = eventRepository.findPublic(
-                eventsRequest.getText(),
-                eventsRequest.getCategories(),
-                eventsRequest.getPaid(),
-                eventsRequest.getRangeStart(),
-                eventsRequest.getRangeEnd(),
-                eventsRequest.getPageable());
+        List<Event> events;
+        if (eventsRequest.isOnlyAvailable()) {
+            events = eventRepository.findPublicOnlyAvailable(
+                    eventsRequest.getText(),
+                    eventsRequest.getCategories(),
+                    eventsRequest.getPaid(),
+                    eventsRequest.getRangeStart(),
+                    eventsRequest.getRangeEnd(),
+                    eventsRequest.getPageable());
+        } else {
+            events = eventRepository.findPublic(
+                    eventsRequest.getText(),
+                    eventsRequest.getCategories(),
+                    eventsRequest.getPaid(),
+                    eventsRequest.getRangeStart(),
+                    eventsRequest.getRangeEnd(),
+                    eventsRequest.getPageable());
+        }
         if (events.isEmpty()) {
             return new ArrayList<>();
-        }
-        if (eventsRequest.isOnlyAvailable()) {
-            events = events.stream().filter(e -> e.getParticipantLimit() == 0
-                            || e.getParticipantLimit() > e.getConfirmedRequests())
-                    .collect(Collectors.toList());
         }
         List<String> uris = events.stream().map(e -> "/events/" + e.getId()).collect(Collectors.toList());
         ViewsStatsRequest request = formViewsStatsRequest(uris);
@@ -223,7 +229,6 @@ public class EventServiceImpl implements EventService {
     public UpdatedRequests updateRequestStatus(long userId, long eventId, UpdateRequestStatus update) {
         Status status = Status.from(update.getStatus())
                 .orElseThrow(() -> new BadRequestException("Unknown state: " + update.getStatus()));
-
         List<Request> requests = requestRepository.findAllById(update.getRequestIds());
         if (requests.isEmpty()) {
             throw new NotFoundException("Requests you are trying to update are not found.");
