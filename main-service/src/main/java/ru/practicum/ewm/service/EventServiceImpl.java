@@ -139,24 +139,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublic(GetEventsRequest eventsRequest) {
-        List<Event> events;
-        if (eventsRequest.isOnlyAvailable()) {
-            events = eventRepository.findPublicOnlyAvailable(
-                    eventsRequest.getText(),
-                    eventsRequest.getCategories(),
-                    eventsRequest.getPaid(),
-                    eventsRequest.getRangeStart(),
-                    eventsRequest.getRangeEnd(),
-                    eventsRequest.getPageable());
-        } else {
-            events = eventRepository.findPublic(
-                    eventsRequest.getText(),
-                    eventsRequest.getCategories(),
-                    eventsRequest.getPaid(),
-                    eventsRequest.getRangeStart(),
-                    eventsRequest.getRangeEnd(),
-                    eventsRequest.getPageable());
-        }
+        List<Event> events = eventRepository.findPublic(
+                eventsRequest.getText(),
+                eventsRequest.getCategories(),
+                eventsRequest.getPaid(),
+                eventsRequest.getRangeStart(),
+                eventsRequest.getRangeEnd(),
+                eventsRequest.getOnlyAvailable(),
+                eventsRequest.getPageable());
         if (events.isEmpty()) {
             return new ArrayList<>();
         }
