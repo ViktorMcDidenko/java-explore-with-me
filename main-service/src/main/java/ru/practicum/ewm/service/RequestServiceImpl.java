@@ -2,10 +2,13 @@ package ru.practicum.ewm.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.dto.RequestDto;
+import ru.practicum.ewm.dto.request.RequestDto;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.*;
+import ru.practicum.ewm.model.enums.State;
+import ru.practicum.ewm.model.enums.Status;
+import ru.practicum.ewm.model.mapper.RequestMapper;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.RequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
@@ -48,8 +51,7 @@ public class RequestServiceImpl implements RequestService {
             status = Status.PENDING;
         }
         Request request = new Request(event, requestor, status);
-        Request savedRequest = requestRepository.save(request);
-        return mapper.requestToRequestDto(savedRequest);
+        return saveAndReturn(request);
     }
 
     @Override
@@ -66,6 +68,10 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException("You can not cancel this request.");
         }
         request.setStatus(Status.CANCELED);
+        return saveAndReturn(request);
+    }
+
+    private RequestDto saveAndReturn(Request request) {
         Request savedRequest = requestRepository.save(request);
         return mapper.requestToRequestDto(savedRequest);
     }

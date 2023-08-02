@@ -5,8 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.dto.CommentDto;
-import ru.practicum.ewm.repository.CommentRepository;
+import ru.practicum.ewm.dto.comment.CommentDto;
 import ru.practicum.ewm.service.CommentService;
 
 import javax.validation.constraints.Positive;

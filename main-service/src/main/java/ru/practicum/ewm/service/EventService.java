@@ -1,7 +1,10 @@
 package ru.practicum.ewm.service;
 
 import org.springframework.data.domain.Pageable;
-import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.dto.event.*;
+import ru.practicum.ewm.dto.request.RequestDto;
+import ru.practicum.ewm.dto.request.UpdateRequestStatus;
+import ru.practicum.ewm.dto.request.UpdatedRequests;
 
 import java.util.List;
 

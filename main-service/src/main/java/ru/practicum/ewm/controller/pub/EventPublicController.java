@@ -7,11 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.client.stats.StatsClient;
-import ru.practicum.ewm.dto.EventDto;
-import ru.practicum.ewm.dto.EventShortDto;
-import ru.practicum.ewm.dto.GetEventsRequest;
+import ru.practicum.ewm.dto.event.EventDto;
+import ru.practicum.ewm.dto.event.EventShortDto;
+import ru.practicum.ewm.dto.event.GetEventsRequest;
 import ru.practicum.ewm.exception.BadRequestException;
-import ru.practicum.ewm.model.Sort;
+import ru.practicum.ewm.model.enums.Sort;
 import ru.practicum.ewm.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;

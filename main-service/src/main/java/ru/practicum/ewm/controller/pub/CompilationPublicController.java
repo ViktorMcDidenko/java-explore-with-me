@@ -5,7 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.dto.CompilationDto;
+import ru.practicum.ewm.dto.compilation.CompilationDto;
 import ru.practicum.ewm.service.CompilationService;
 
 import javax.validation.constraints.Positive;

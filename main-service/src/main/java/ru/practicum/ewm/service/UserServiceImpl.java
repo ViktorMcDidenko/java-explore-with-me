@@ -3,10 +3,10 @@ package ru.practicum.ewm.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.dto.UserDto;
+import ru.practicum.ewm.dto.user.UserDto;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.model.User;
-import ru.practicum.ewm.model.UserMapper;
+import ru.practicum.ewm.model.mapper.UserMapper;
 import ru.practicum.ewm.repository.UserRepository;
 
 import java.util.List;

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.ewm.model.enums.State;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

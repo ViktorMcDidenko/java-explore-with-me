@@ -5,13 +5,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewm.client.stats.StatsClient;
-import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.dto.event.*;
+import ru.practicum.ewm.dto.request.RequestDto;
+import ru.practicum.ewm.dto.request.UpdateRequestStatus;
+import ru.practicum.ewm.dto.request.UpdatedRequests;
 import ru.practicum.ewm.dto.stats.ViewStats;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
 import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.*;
+import ru.practicum.ewm.model.enums.Sort;
+import ru.practicum.ewm.model.enums.State;
+import ru.practicum.ewm.model.enums.Status;
+import ru.practicum.ewm.model.mapper.EventMapper;
+import ru.practicum.ewm.model.mapper.RequestMapper;
 import ru.practicum.ewm.repository.*;
 
 import java.time.LocalDateTime;
@@ -42,8 +50,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.",
                         newEventDto.getCategory())));
         Event event = eventMapper.newEventDtotoEvent(newEventDto, category, user);
-        Event savedEvent = eventRepository.save(event);
-        return eventMapper.eventToEventDto(savedEvent);
+        return saveAndReturn(event);
     }
 
     @Override
@@ -54,45 +61,13 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException(String
                     .format("Event with id=%d was not found or was not created by user with id=%d.", eventId, userId));
         }
-        ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + eventId));
-        try {
-            List<ViewStats> stats = client.get(request);
-            long views = stats.stream().findAny().get().getHits();
-            event.setViews(views);
-            event = eventRepository.save(event);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-        return eventMapper.eventToEventDto(event);
+        return getViews(event);
     }
 
     @Override
     public List<EventShortDto> get(long userId, Pageable pageable) {
         List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
-        if (events.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<String> uris = events.stream().map(e -> "/events/" + e.getId()).collect(Collectors.toList());
-        ViewsStatsRequest request = formViewsStatsRequest(uris);
-        List<ViewStats> stats = new ArrayList<>();
-        try {
-            stats = client.get(request);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-        if (!stats.isEmpty()) {
-            Map<Long, Event> eventMap = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));
-            for (ViewStats v : stats) {
-                String[] statsArray = v.getUri().split("/");
-                long id = Long.parseLong(statsArray[2]);
-                Event event = eventMap.get(id);
-                event.setViews(v.getHits());
-                event = eventRepository.save(event);
-                eventMap.put(id, event);
-            }
-            events = new ArrayList<>(eventMap.values());
-        }
-        return eventMapper.eventToEventShortDtoList(events);
+        return eventMapper.eventToEventShortDtoList(getViewsForList(events));
     }
 
     @Override
@@ -117,24 +92,14 @@ public class EventServiceImpl implements EventService {
                         .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.",
                                 updateEventRequest.getCategory()))) : event.getCategory();
         Event eventToUpdate = eventMapper.updateEventUserRequestToEvent(updateEventRequest, event, user, category);
-        Event updatedEvent = eventRepository.save(eventToUpdate);
-        return eventMapper.eventToEventDto(updatedEvent);
+        return saveAndReturn(eventToUpdate);
     }
 
     @Override
     public EventDto getByIdPublic(long id) {
         Event event = eventRepository.findByIdAndState(id, State.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id=%d was not found.", id)));
-        ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + id));
-        try {
-            List<ViewStats> stats = client.get(request);
-            long views = stats.stream().findAny().get().getHits();
-            event.setViews(views);
-            event = eventRepository.save(event);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-        return eventMapper.eventToEventDto(event);
+        return getViews(event);
     }
 
     @Override
@@ -147,29 +112,7 @@ public class EventServiceImpl implements EventService {
                 eventsRequest.getRangeEnd(),
                 eventsRequest.getOnlyAvailable(),
                 eventsRequest.getPageable());
-        if (events.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<String> uris = events.stream().map(e -> "/events/" + e.getId()).collect(Collectors.toList());
-        ViewsStatsRequest request = formViewsStatsRequest(uris);
-        List<ViewStats> stats = new ArrayList<>();
-        try {
-            stats = client.get(request);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-        if (!stats.isEmpty()) {
-            Map<Long, Event> eventMap = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));
-            for (ViewStats v : stats) {
-                String[] statsArray = v.getUri().split("/");
-                long id = Long.parseLong(statsArray[2]);
-                Event event = eventMap.get(id);
-                event.setViews(v.getHits());
-                event = eventRepository.save(event);
-                eventMap.put(id, event);
-            }
-            events = new ArrayList<>(eventMap.values());
-        }
+        events = getViewsForList(events);
         if (eventsRequest.getSort() != null && eventsRequest.getSort().equals(Sort.VIEWS)) {
             events.sort(Comparator.comparingLong(Event::getViews));
         }
@@ -192,8 +135,7 @@ public class EventServiceImpl implements EventService {
                         .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.",
                                 updateEventRequest.getCategory()))) : event.getCategory();
         Event eventToUpdate = eventMapper.updateEventUserRequestToEventAdmin(updateEventRequest, event, category);
-        Event updatedEvent = eventRepository.save(eventToUpdate);
-        return eventMapper.eventToEventDto(updatedEvent);
+        return saveAndReturn(eventToUpdate);
     }
 
     @Override
@@ -258,5 +200,50 @@ public class EventServiceImpl implements EventService {
                 .unique(true)
                 .application("ewm-main-service")
                 .build();
+    }
+
+    private EventDto getViews(Event event) {
+        ViewsStatsRequest request = formViewsStatsRequest(Collections.singletonList("/events/" + event.getId()));
+        try {
+            List<ViewStats> stats = client.get(request);
+            long views = stats.stream().findAny().get().getHits();
+            event.setViews(views);
+            event = eventRepository.save(event);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+        return eventMapper.eventToEventDto(event);
+    }
+
+    private List<Event> getViewsForList(List<Event> events) {
+        if (events.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<String> uris = events.stream().map(e -> "/events/" + e.getId()).collect(Collectors.toList());
+        ViewsStatsRequest request = formViewsStatsRequest(uris);
+        List<ViewStats> stats = new ArrayList<>();
+        try {
+            stats = client.get(request);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+        if (!stats.isEmpty()) {
+            Map<Long, Event> eventMap = events.stream().collect(Collectors.toMap(Event::getId, Function.identity()));
+            for (ViewStats v : stats) {
+                String[] statsArray = v.getUri().split("/");
+                long id = Long.parseLong(statsArray[2]);
+                Event event = eventMap.get(id);
+                event.setViews(v.getHits());
+                event = eventRepository.save(event);
+                eventMap.put(id, event);
+            }
+            events = new ArrayList<>(eventMap.values());
+        }
+        return events;
+    }
+
+    private EventDto saveAndReturn(Event event) {
+        Event savedEvent = eventRepository.save(event);
+        return eventMapper.eventToEventDto(savedEvent);
     }
 }

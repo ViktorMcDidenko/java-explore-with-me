@@ -1,14 +1,19 @@
 package ru.practicum.ewm.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.dto.AdminCommentDto;
-import ru.practicum.ewm.dto.CommentDto;
-import ru.practicum.ewm.dto.NewCommentDto;
+import ru.practicum.ewm.dto.comment.AdminCommentDto;
+import ru.practicum.ewm.dto.comment.CommentDto;
+import ru.practicum.ewm.dto.comment.NewCommentDto;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.*;
+import ru.practicum.ewm.model.enums.Role;
+import ru.practicum.ewm.model.enums.State;
+import ru.practicum.ewm.model.enums.Status;
+import ru.practicum.ewm.model.mapper.CommentMapper;
 import ru.practicum.ewm.repository.CommentRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.RequestRepository;
@@ -41,8 +46,7 @@ public class CommentServiceImpl implements CommentService {
             role = Role.PARTICIPANT;
         }
         Comment comment = new Comment(commentDto.getText(), event, author, role);
-        Comment savedComment = commentRepository.save(comment);
-        return mapper.commentToCommentDto(savedComment);
+        return saveAndReturn(comment);
     }
 
     @Override
@@ -60,8 +64,7 @@ public class CommentServiceImpl implements CommentService {
         Set<User> reportedBy = comment.getReportedBy() == null ? new HashSet<>() : comment.getReportedBy();
         reportedBy.add(reporter);
         comment.setReportedBy(reportedBy);
-        Comment savedComment = commentRepository.save(comment);
-        return mapper.commentToCommentDto(savedComment);
+        return saveAndReturn(comment);
     }
 
     @Override
@@ -69,7 +72,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundException(String.format("Comment with id=%d was not found.", commentId)));
         if (comment.getEvent().getId() != eventId) {
-            throw new ConflictException("There are no event with comment with id=" + commentId);
+            throw new ConflictException("Please check carefully event id and comment id.");
         }
         if (comment.getAuthor().getId() != userId) {
             throw new ConflictException("You can not delete comment with id=" + commentId);
@@ -85,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<AdminCommentDto> getReported(List<Long> events, Pageable pageable) {
-        if (!eventRepository.existsByIdIn(events)) {
+        if (events != null && !eventRepository.existsByIdIn(events)) {
             return new ArrayList<>();
         }
         List<Comment> comments = commentRepository.findReported(events, pageable);
@@ -104,6 +107,15 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deleteByAdmin(long commentId) {
-        commentRepository.deleteById(commentId);
+        try {
+            commentRepository.deleteById(commentId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NotFoundException(String.format("Comment with id=%d was not found.", commentId));
+        }
+    }
+
+    private CommentDto saveAndReturn(Comment comment) {
+        Comment savedComment = commentRepository.save(comment);
+        return mapper.commentToCommentDto(savedComment);
     }
 }

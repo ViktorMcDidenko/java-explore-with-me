@@ -1,9 +1,9 @@
 package ru.practicum.ewm.service;
 
 import org.springframework.data.domain.Pageable;
-import ru.practicum.ewm.dto.AdminCommentDto;
-import ru.practicum.ewm.dto.CommentDto;
-import ru.practicum.ewm.dto.NewCommentDto;
+import ru.practicum.ewm.dto.comment.AdminCommentDto;
+import ru.practicum.ewm.dto.comment.CommentDto;
+import ru.practicum.ewm.dto.comment.NewCommentDto;
 
 import java.util.List;
 

@@ -21,7 +21,7 @@ public class StatsClient {
     private final RestTemplate rest;
     private static final String APPLICATION = "ewm-main-service";
 
-    public StatsClient(@Value("${stats-server.url}") String statsServiceUri, RestTemplateBuilder builder) {
+    public StatsClient(@Value("http://localhost:9090") String statsServiceUri, RestTemplateBuilder builder) {
         this.rest = builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(statsServiceUri))
                 .build();
