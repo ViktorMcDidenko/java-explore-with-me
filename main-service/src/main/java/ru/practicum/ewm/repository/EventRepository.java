@@ -15,6 +15,8 @@ import java.util.Set;
 public interface EventRepository extends JpaRepository<Event, Long> {
     boolean existsByCategoryId(Long catId);
 
+    boolean existsByIdAndState(Long catId, State state);
+
     List<Event> findByInitiatorId(long initiatorId, Pageable pageable);
 
     Optional<Event> findByIdAndState(long id, State state);
@@ -53,4 +55,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                           @Param("rangeStart") LocalDateTime rangeStart,
                           @Param("rangeEnd") LocalDateTime rangeEnd,
                           Pageable pageable);
+
+    boolean existsByIdIn(List<Long> events);
 }
