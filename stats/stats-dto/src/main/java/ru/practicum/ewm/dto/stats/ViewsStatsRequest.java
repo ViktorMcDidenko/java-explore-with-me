@@ -13,9 +13,9 @@ import java.util.List;
 public class ViewsStatsRequest {
     private List<String> uris;
     @Builder.Default
-    private LocalDateTime start = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+    private LocalDateTime start = LocalDateTime.now().minusHours(1);
     @Builder.Default
-    private LocalDateTime end = LocalDateTime.now();
+    private LocalDateTime end = LocalDateTime.now().plusHours(1);
     private boolean unique;
     private String application;
 }

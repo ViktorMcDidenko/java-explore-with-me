@@ -1,12 +1,9 @@
 package ru.practicum.ewm.dto.stats;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
-@Builder
-@Getter
-@ToString
+@Data
+@AllArgsConstructor
 public class ViewStats {
     private String app;
     private String uri;

@@ -35,14 +35,8 @@ public class StatsDaoImpl implements StatsDao {
     }
 
     private RowMapper<ViewStats> rowMapper() {
-        return (rs, rowNum) -> {
-            ViewStats result = ViewStats.builder()
-                    .app(rs.getString("app"))
-                    .uri(rs.getString("uri"))
-                    .hits(rs.getInt("hits"))
-                    .build();
-            return result;
-        };
+        return (rs, rowNum) -> new ViewStats(rs.getString("app"), rs.getString("uri"),
+                rs.getInt("hits"));
     }
 
     private String addUris(List<String> uris) {

@@ -11,6 +11,7 @@ import ru.practicum.ewm.dto.stats.ViewStats;
 import ru.practicum.ewm.dto.stats.ViewsStatsRequest;
 import ru.practicum.ewm.stats.service.impl.StatsService;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 public class StatsController {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final StatsService service;
 
     @PostMapping("/hit")
@@ -34,14 +35,18 @@ public class StatsController {
     public ResponseEntity<List<ViewStats>> getStats(@RequestParam @NonNull String start,
                                                     @RequestParam @NonNull String end,
                                                     @RequestParam(required = false) List<String> uris,
-                                                    @RequestParam(defaultValue = "false") boolean unique) {
+                                                    @RequestParam(defaultValue = "false") boolean unique)
+            throws UnsupportedEncodingException {
         LocalDateTime startTime;
         LocalDateTime endTime;
         try {
-            startTime = LocalDateTime.parse(start, formatter);
-            endTime = LocalDateTime.parse(end, formatter);
+            startTime = LocalDateTime.parse(start, FORMATTER);
+            endTime = LocalDateTime.parse(end, FORMATTER);
         } catch (DateTimeParseException e) {
             return ResponseEntity.badRequest().build();
+        }
+        if (startTime.isAfter(endTime)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         if (uris == null) {
             uris = new ArrayList<>();
