@@ -14,6 +14,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query(value = "SELECT * " +
             "FROM comments c " +
             "WHERE c.reported = TRUE " +
-            "AND (:events IS NULL OR c.event_id IN (CAST(CAST(:events AS TEXT) AS BIGINT))) ", nativeQuery = true)
-    List<Comment> findReported(@Param("events") List<Long> events, Pageable pageable);
+            "AND (:eventIds IS NULL OR c.event_id IN (:eventIds)) ", nativeQuery = true)
+    List<Comment> findReported(@Param("eventIds") List<Long> eventIds, Pageable pageable);
 }

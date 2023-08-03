@@ -19,7 +19,6 @@ import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.RequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,9 +87,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<AdminCommentDto> getReported(List<Long> events, Pageable pageable) {
-        if (events != null && !eventRepository.existsByIdIn(events)) {
-            return new ArrayList<>();
-        }
         List<Comment> comments = commentRepository.findReported(events, pageable);
         return mapper.commentToAdminCommentDtoList(comments);
     }
