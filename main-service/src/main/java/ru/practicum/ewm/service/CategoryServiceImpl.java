@@ -3,10 +3,10 @@ package ru.practicum.ewm.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.dto.CategoryDto;
+import ru.practicum.ewm.dto.category.CategoryDto;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.model.CategoryMapper;
+import ru.practicum.ewm.model.mapper.CategoryMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
@@ -27,20 +27,18 @@ public class CategoryServiceImpl implements CategoryService {
             throw new ConflictException(String.format("Name %s is already in use.", categoryDto.getName()));
         }
         Category category = mapper.categoryDtoToCategory(categoryDto);
-        Category savedCategory = categoryRepository.save(category);
-        return mapper.categoryToCategoryDto(savedCategory);
+        return saveAndReturn(category);
     }
 
     @Override
     public CategoryDto change(long id, CategoryDto categoryDto) {
-        Category savedCategory = categoryRepository.findById(id)
+        Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.", id)));
         if (categoryRepository.existsByNameAndIdIsNot(categoryDto.getName(), id)) {
             throw new ConflictException(String.format("Name %s is already in use.", categoryDto.getName()));
         }
-        savedCategory.setName(categoryDto.getName());
-        Category updatedCategory = categoryRepository.save(savedCategory);
-        return mapper.categoryToCategoryDto(updatedCategory);
+        category.setName(categoryDto.getName());
+        return saveAndReturn(category);
     }
 
     @Override
@@ -65,5 +63,10 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Category with id=%d was not found.", id)));
         return mapper.categoryToCategoryDto(category);
+    }
+
+    private CategoryDto saveAndReturn(Category category) {
+        Category savedCategory = categoryRepository.save(category);
+        return mapper.categoryToCategoryDto(savedCategory);
     }
 }

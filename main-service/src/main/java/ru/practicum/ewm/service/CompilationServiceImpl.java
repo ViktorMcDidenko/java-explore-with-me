@@ -3,12 +3,12 @@ package ru.practicum.ewm.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.dto.CompilationDto;
-import ru.practicum.ewm.dto.NewCompilationDto;
-import ru.practicum.ewm.dto.UpdateCompilationRequest;
+import ru.practicum.ewm.dto.compilation.CompilationDto;
+import ru.practicum.ewm.dto.compilation.NewCompilationDto;
+import ru.practicum.ewm.dto.compilation.UpdateCompilationRequest;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.model.Compilation;
-import ru.practicum.ewm.model.CompilationMapper;
+import ru.practicum.ewm.model.mapper.CompilationMapper;
 import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.repository.CompilationRepository;
 import ru.practicum.ewm.repository.EventRepository;
@@ -32,8 +32,7 @@ public class CompilationServiceImpl implements CompilationService {
             events = eventRepository.findByIdIn(compilationDto.getEvents());
         }
         Compilation compilation = mapper.newCompilationDtoToCompilation(compilationDto, events);
-        Compilation savedCompilation = compilationRepository.save(compilation);
-        return mapper.compilationToCompilationDto(savedCompilation);
+        return saveAndReturn(compilation);
     }
 
     @Override
@@ -55,8 +54,7 @@ public class CompilationServiceImpl implements CompilationService {
         if (request.getTitle() != null) {
             compilation.setTitle(request.getTitle());
         }
-        Compilation savedCompilation = compilationRepository.save(compilation);
-        return mapper.compilationToCompilationDto(savedCompilation);
+        return saveAndReturn(compilation);
     }
 
     @Override
@@ -70,5 +68,10 @@ public class CompilationServiceImpl implements CompilationService {
     public List<CompilationDto> get(boolean pinned, Pageable pageable) {
         List<Compilation> compilations = compilationRepository.findByPinned(pinned, pageable);
         return compilations.stream().map(mapper::compilationToCompilationDto).collect(Collectors.toList());
+    }
+
+    private CompilationDto saveAndReturn(Compilation compilation) {
+        Compilation savedCompilation = compilationRepository.save(compilation);
+        return mapper.compilationToCompilationDto(savedCompilation);
     }
 }

@@ -20,7 +20,7 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @ManyToMany
-    private Set<Event> events = new HashSet<Event>();
+    private Set<Event> events = new HashSet<>();
     private boolean pinned;
     private String title;
 }
